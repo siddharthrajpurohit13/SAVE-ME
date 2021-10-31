@@ -43,13 +43,13 @@ Mulesoft **Subscribes** to those event and determines if the event has **fallDet
 
 Once either the aggregated size or the timeout has been reached, mulesoft takes all those events and processes them by comparing the latter reading to the prior. 
 
-```json
+```
 "-0.45,0.04,1.98" => this reading is in the format of "x_axis,y_axis,z_axis"
 ```
 
 If the difference between the axis is greater than 0.30 (its a callibrated baseline for considering the differene as an actual movement) for any two dimension , then that event is considered as a movement. Based on all the events received we calculate the **movement%** like this :
 
-```json
+```
 movement% = ( eligible movement events / total no. of events received ) * 100
 ```
 
@@ -63,7 +63,7 @@ Mulesoft Uses the below mentioned twilio APIs to send sms and make voice calls.
 
 SMS API : [https://www.twilio.com/docs/sms/api](https://www.twilio.com/docs/sms/api)
 
-```json
+```
 POST REQUEST BODY
 
 output application/x-www-form-urlencoded
@@ -77,7 +77,7 @@ output application/x-www-form-urlencoded
 
 VOICE API : [https://www.twilio.com/docs/voice/ap](https://www.twilio.com/docs/voice/api)i
 
-```json
+```
 POST REQUEST BODY
 
 output application/x-www-form-urlencoded
