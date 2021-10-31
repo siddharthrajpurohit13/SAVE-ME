@@ -37,7 +37,7 @@ The event is a json object consisting of three critical pieces:
 
 Once the event has been recieved from arduino via an HTTP POST request, mulesoft **Publishes** the original event to a FIFO Messaging Queue so that the arduino microcontroller code can quickly get the http response back and continue to loop over the code to send us precise data readings.
 
-![Untitled](IOT%20Fall%20Detection%20+%20MuleSoft%20+%20Twilio%20811be9e9b4004148885d85f647d864f0/Untitled.png)
+![image](https://user-images.githubusercontent.com/49921179/139592377-9d27fa5e-57f2-4f96-b3a4-9f9bd01137fb.png)
 
 Mulesoft **Subscribes** to those event and determines if the event has **fallDetection** as true and sends it over to the **Group Based Aggregator**. The aggregator collects events for that user till it either aggregates 180 events OR 3 minute timeout for that group. 
 
