@@ -29,8 +29,7 @@ String zaxis = "0"; //default value
 String fallDetection = ""; //default value
 String accelerometer = "0,0,0"; //default value
 String pedometer = "0"; //default value
-//float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object  
-float lat = 32.927781,lon = -96.9509198; // create variable for latitude and longitude object  
+float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object  
 SoftwareSerial gpsSerial(3,4);//rx,tx 
 LiquidCrystal lcd(A0,A1,A2,A3,A4,A5); 
 TinyGPS gps; // create gps object
