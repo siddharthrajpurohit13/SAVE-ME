@@ -5,20 +5,23 @@
 #include <WiFiNINA.h>
 #include <ArduinoHttpClient.h>
 #include <Arduino_LSM6DS3.h>
+#include <LiquidCrystal.h> 
+#include <SoftwareSerial.h> 
+#include <TinyGPS.h>
 
 LSM6DS3Core myIMU(SPI_MODE, SPIIMU_SS);
 
 
 //Variables declaration
-char ssid[] = ""; // give wifi name
-char pass[] = ""; // give wifi password
+char ssid[] = "kank"; // wifi name
+char pass[] = "kank1010"; // wifi password
 int status = WL_IDLE_STATUS;
 int HTTP_PORT = 80; 
 String HTTP_METHOD = "POST";
-char HOST_NAME[] = ""; // hostname of web server ex: api.mulesoft.com
-String PATH_NAME   = ""; //URI path ex: /api/sensor/username
-String client_id = ""; //client id of Mulesoft API
-String client_secret = ""; // client secret of MuleSoft API
+char HOST_NAME[] = "iot-fall-detection-health-xapi-prod.us-e1.cloudhub.io"; // hostname of web server:
+String PATH_NAME   = "/api/sensorData/Siddharth"; //URI path
+String client_id = "8722c994391d479790257259b13598db"; 
+String client_secret = "4F25D6fd55254D96a1Dded6E1d7d262A"; 
 String postData = ""; //default value
 String xaxis = "0"; //default value
 String yaxis = "0"; //default value
@@ -26,6 +29,10 @@ String zaxis = "0"; //default value
 String fallDetection = ""; //default value
 String accelerometer = "0,0,0"; //default value
 String pedometer = "0"; //default value
+float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object  
+SoftwareSerial gpsSerial(3,4);//rx,tx 
+LiquidCrystal lcd(A0,A1,A2,A3,A4,A5); 
+TinyGPS gps; // create gps object 
 
 WiFiClient client;
 
@@ -35,6 +42,10 @@ void setup() {
   initiateWifi();
   delay(1000); //relax...
   acccelerometerfn();
+
+  //Serial.println("The GPS Received Signal:"); 
+gpsSerial.begin(9600); // connect gps sensor 
+lcd.begin(16,2); 
   
   //Call .beginCore() to configure the IMU
   if( myIMU.beginCore() != 0 )
@@ -104,7 +115,8 @@ void loop() {
     }
    accelerometerDetection();
    pedometerDetected();
-   postData = ("{\"fallDetection\": " + fallDetection + ",\"pedometer\": " + pedometer + ",\"accelerometer\":" +  accelerometer + "}");
+   GPS();
+   postData = ("{\"fallDetection\": " + fallDetection + ",\"pedometer\": " + pedometer + ",\"accelerometer\":" +  accelerometer + ",\"latitude\":" + latitude + ",\"longitude\":" + longitude "}");
    httpPostData();
 }
 
@@ -194,4 +206,16 @@ void acccelerometerfn() {
   Serial.println();
   Serial.println("Acceleration in G's");
   Serial.println("X\tY\tZ");
+}
+
+void GPS() {
+   while(gpsSerial.available()){ // check for gps data 
+  if(gps.encode(gpsSerial.read()))// encode gps data 
+  {  
+  gps.f_get_position(&lat,&lon); // get latitude and longitude 
+  } 
+  } 
+  String latitude = String(lat,6); 
+  String longitude = String(lon,6); 
+  Serial.println(latitude+";"+longitude);  
 }
