@@ -1,0 +1,23 @@
+#%RAML 1.0
+title: IoT Fall Detection Health API
+version: v1
+protocols: [HTTP]
+mediaType: 
+- application/json
+description: Fall detection and dispatching emergency alerts
+
+uses:
+  commonTemplate : exchange_modules/9ada7d62-d5cd-4ba3-80f5-418d75871216/common-api-template/1.0.0/common-api-template.raml
+
+types:
+  sensorRequest: !include data-types/sensorRequest.raml
+  sensorResponse: !include data-types/sensorResponse.raml
+  errorResponse: !include data-types/errorResponse.raml
+
+/sensorData/{userId}:
+    post:
+        description: receive information from sensors about fall detection, pedometer and accelerometer and analyze the data to detect person's current situation and dispact emergency services and contacts. 
+        body:
+          application/json:
+            type: sensorRequest
+        is: [ {commonTemplate.201: {responseType: sensorResponse}}, {commonTemplate.400: {responseType: errorResponse}},{commonTemplate.404: {responseType: errorResponse}},{commonTemplate.405: {responseType: errorResponse}},{commonTemplate.500: {responseType: errorResponse}}]

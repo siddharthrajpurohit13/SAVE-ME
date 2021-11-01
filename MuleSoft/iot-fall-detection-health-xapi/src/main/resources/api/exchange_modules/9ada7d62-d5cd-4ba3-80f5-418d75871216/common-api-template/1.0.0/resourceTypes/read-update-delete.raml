@@ -1,0 +1,202 @@
+#%RAML 1.0 ResourceType
+usage: Use this to describe resource that list a single item 
+description: A particular <<resourcePathName | !singularize>>. You can also carry out patch or delete operation on a paritcular item
+get?:
+    responses:
+      500:
+        description: |
+            An Internal Server Error has occurred. 
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      502:
+        description: |
+            Bad Gateway. 
+            Problem communicating with or an error has been returned from a downstream endpoint.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      504:
+        description: |
+            Gateway Timeout.
+            Timeout communicating with a downstream endpoint 
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      404:
+        description: |
+            The URI requested is invalid or the resource requested does not exist.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      403:
+        description: |
+            The request is understood, but it has been refused or access is not allowed.  
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>    
+            example: <<errorResponseExample>>   
+      401:
+        description: |
+            Requestor is not authorised to perform this action.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      400:
+        description: |
+            Request is invalid.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      200:
+        description: |
+            Successfully retrieved a <<resourcePathName | !singularize>>. 
+        body:
+          application/json:
+            type: <<resourcePathName | !singularize>>
+patch?:
+  body:
+    application/json:
+      type: <<resourcePathName | !singularize>>
+      example: <<errorResponseExample>>
+  responses:
+    500:
+      description: |
+            An Internal Server Error has occurred. 
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    502:
+      description: |
+            Bad Gateway. 
+            Problem communicating with or an error has been returned from a downstream endpoint.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    504:
+      description: |
+            Gateway Timeout.
+            Timeout communicating with a downstream endpoint 
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    404:
+      description: |
+            The URI requested is invalid or the resource requested does not exist.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    403:
+      description: |
+            The request is understood, but it has been refused or access is not allowed.  
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    401:
+      description: |
+            Requestor is not authorised to perform this action.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    400:
+      description: |
+            Request is invalid.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    200:
+      description: |
+             Updated existing <<resourcePathName | !singularize>>
+      body:
+        application/json:
+          type: <<successResponse>>
+delete?:
+  responses:
+    500:
+      description: |
+            An Internal Server Error has occurred. 
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    502:
+      description: |
+            Bad Gateway. 
+            Problem communicating with or an error has been returned from a downstream endpoint.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    504:
+      description: |
+            Gateway Timeout.
+            Timeout communicating with a downstream endpoint 
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    404:
+      description: |
+            The URI requested is invalid or the resource requested does not exist.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    403:
+      description: |
+            The request is understood, but it has been refused or access is not allowed.  
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    401:
+      description: |
+            Requestor is not authorised to perform this action.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    400:
+      description: |
+            Request is invalid.
+            Refer to the accompanying error message for further details.
+      body:
+        application/json:
+          type: <<errorResponseType>>
+          example: <<errorResponseExample>>
+    200:
+      description: |
+             Deleted existing <<resourcePathName | !singularize>>
+      body:
+        application/json:
+          type: <<successResponse>>

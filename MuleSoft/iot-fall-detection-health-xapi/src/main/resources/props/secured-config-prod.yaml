@@ -1,0 +1,11 @@
+#AnypointMQ
+mq:
+  client-secret: "![gIBkWJA1FAVnhCQKDPw95SXfIO5zUYrXIIY5gRIm+AhKSkutIOsREQ==]"
+  
+#Twilio
+twilio:
+  token: "![tbi7x9i8YQ7N24F4mPrfXbtfvZAWK8wUSNzoJJedqPjd7MhRljKYcg==]"
+  
+#Voice API
+twiml:
+  client-secret: "![dTNKM+bEjsKR0JxvnRfWuhV04wT+mpgQcu/IXXgz4Tu163p7rJcn0w==]"

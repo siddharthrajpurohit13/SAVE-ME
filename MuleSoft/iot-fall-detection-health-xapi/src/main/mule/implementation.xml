@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="fall-detection-main-flow" doc:id="8325b16e-a7b4-4a15-afbe-04e359067d51" >
+		<ee:transform doc:name="Event Data" doc:id="f8ca9f05-50c0-4241-a2b3-8d5560c9a509" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload ++ {
+	"sensorTimestamp": now(),
+	"userId": attributes.uriParams.'userId' default ""	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Event Data" doc:id="d066a4de-f18f-4fd1-948f-fb92bd2e0dd6" message="#[output application/json --- payload]"/>
+		<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="3556ba73-a597-42a9-b33d-7ffcf663c406" millisBetweenRetries="${retry.millis}">
+			<anypoint-mq:publish doc:name="Publish" doc:id="7467a786-4773-4a4c-b8da-98032dd65643" config-ref="Anypoint_MQ_Config" destination="${mq.queue-name}" />
+		</until-successful>
+	</sub-flow>
+</mule>

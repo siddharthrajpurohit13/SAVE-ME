@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:aggregators="http://www.mulesoft.org/schema/mule/aggregators" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/aggregators http://www.mulesoft.org/schema/mule/aggregators/current/mule-aggregators.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/current/mule-twilio.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	
+	<flow name="sensor-queue-subscriber-flow" doc:id="8c0f4cdf-c5a2-43c9-a6dd-2997cebf4754">
+		<anypoint-mq:subscriber doc:name="Subscriber" doc:id="a8327851-1c17-4c4b-b975-f5cc3fcacc7d" config-ref="Anypoint_MQ_Config" destination="${mq.queue-name}" acknowledgementMode="MANUAL">
+			<redelivery-policy />
+			<anypoint-mq:subscriber-type >
+				<anypoint-mq:prefetch maxLocalMessages="1" />
+			</anypoint-mq:subscriber-type>
+		</anypoint-mq:subscriber>
+		<set-variable value="#[output application/java --- payload]" doc:name="originalEvent" doc:id="9c28bbde-69ae-4aae-aa22-87b0bfed0c8b" variableName="originalEvent" />
+		<set-variable value="#[attributes.ackToken]" doc:name="ackToken" doc:id="b06b2980-3a5e-489e-b597-120516677029" variableName="ackToken"/>
+		<flow-ref doc:name="user-experienced-free-fall" doc:id="e1de47db-c681-4210-b758-6fedc0296f18" name="user-experienced-free-fall" />
+		<choice doc:name="Experienced Free Fall ?" doc:id="131a6a49-7585-44d1-9608-79d1f188591a">
+			<when expression="#[vars.experiencedFreeFall default false]">
+				<aggregators:group-based-aggregator doc:id="d016ef79-f89e-4f56-af43-dd0b28fd6126" doc:name="user-based-grouping" name="user-based-grouping" groupId='#[payload.userId default ""]' timeout="${aggregator.timeout}" timeoutUnit="MINUTES" groupSize="${aggregator.size}">
+			<aggregators:incremental-aggregation>
+						<ee:transform doc:name="payload" doc:id="37df1a94-172b-4081-8413-829fd5202622">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+vars.originalEvent]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</aggregators:incremental-aggregation>
+			<aggregators:aggregation-complete>
+						<flow-ref doc:name="sensor-data-processing" doc:id="d3633133-3ecd-4f65-996c-ed0638ba7f3f" name="sensor-data-processing" />
+					</aggregators:aggregation-complete>
+		</aggregators:group-based-aggregator>
+				<logger level="INFO" doc:name="Log Aggregator Success" doc:id="cdc0ad55-dccb-45ef-9273-ab6ece570123" message="Event sent to aggregator for processing"/>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Past Free Fall Not Detected" doc:id="e25666d2-6020-4aa6-a79b-42032da07833" message="Past Free Fall Not Detected" />
+			</otherwise>
+		</choice>
+		<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="c8853971-6db3-44b5-a263-84dd4ec81eb6" millisBetweenRetries="${retry.millis}">
+			<anypoint-mq:ack doc:name="Ack" doc:id="3c073033-e51c-431b-a3a1-8f0965b460bf" config-ref="Anypoint_MQ_Config" ackToken="#[vars.ackToken]" />
+		</until-successful>
+	</flow>
+	<sub-flow name="user-experienced-free-fall" doc:id="f3d38fc4-6e10-4c94-bcf4-7d3fb233cd22">
+		<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="295ca0bc-06a2-4383-b3f7-aa625531ce6d" millisBetweenRetries="${retry.millis}">
+			<os:retrieve doc:name="FreeFall Status" doc:id="b805c54e-4572-4d1b-b0b6-f6762cc79be5" key='#[upper(payload.userId) ++ "fallKey"]' target="experiencedFreeFall" objectStore="Object_store">
+			<os:default-value><![CDATA[#[output application/java
+---
+false]]]></os:default-value>
+		</os:retrieve>
+			<choice doc:name="Past FreeFall Detected ?" doc:id="21c3da2a-caea-46c9-b378-5b1da7358192">
+				<when expression="#[vars.experiencedFreeFall]">
+					<logger level="INFO" doc:name="Past FreeFall Detected" doc:id="f7284916-7b93-4bf0-b11f-fa8eb2b1c51e" message="Fall already registered for user : #[payload.userId]"/>
+			</when>
+				<otherwise >
+					<choice doc:name="Under FreeFall ?" doc:id="835d7507-76d3-46f2-9a63-2e95058ee3ce" >
+						<when expression="#[payload.fallDetection]">
+							<os:store doc:name="Store FreeFall Status" doc:id="fbb95c03-44e5-4fa9-a2b0-def32dbc3339" key='#[upper(payload.userId) ++ "fallKey"]' objectStore="Object_store">
+			<os:value><![CDATA[#[output application/java
+---
+true]]]></os:value>
+		</os:store>
+							<set-variable value="#[output application/java --- true]" doc:name="experiencedFreeFall" doc:id="c615926f-f5e4-4d5d-9e88-4f03857754cd" variableName="experiencedFreeFall" />
+						</when>
+						<otherwise >
+							<logger level="INFO" doc:name="No FreeFall Detected" doc:id="12dafaf8-9690-4947-8838-4a089e5601dd" message="No fall registered for user : #[payload.userId]"/>
+						</otherwise>
+					</choice>
+				</otherwise>
+		</choice>
+		</until-successful>
+	</sub-flow>
+	<flow name="aggregator-listener-flow" doc:id="cf4c4d2e-c4db-4e98-9dc2-3071cb0ee9b7">
+		<aggregators:aggregator-listener doc:name="Aggregator listener" doc:id="4e54b13d-3a57-46e0-bc85-e8179ce62698" includeTimedOutGroups="true" aggregatorName="user-based-grouping" />
+		<flow-ref doc:name="sensor-data-processing" doc:id="8954c9fe-7a36-40b3-9c2b-fc784bc8e34e" name="sensor-data-processing" />
+	</flow>
+	<sub-flow name="sensor-data-processing" doc:id="1b57f9bb-0445-42f4-ad7b-bd4f6997413d" >
+		<set-variable value="#[output application/java --- max(payload.pedometer) default 0]" doc:name="maxStepsTaken" doc:id="23f31bdf-bbbe-413d-abde-50bb8a0aa03e" variableName="maxStepsTaken" />
+		<set-variable value="#[output application/java --- sizeOf(payload)]" doc:name="totalEvents" doc:id="88766993-5adb-422c-8bab-c8705d2771b8" variableName="totalEvents" />
+		<set-variable value='#[output application/java --- payload[0].userId default "Max The Muley"]' doc:name="userId" doc:id="d238dfa7-b873-44f7-b696-58c5b80e8329" variableName="userId" />
+		<set-variable value="#[payload[-1].location]" doc:name="userLocation" doc:id="5ea3efd4-c53e-478a-9b34-1fe71349dd4d" variableName="userLocation"/>
+		<ee:transform doc:name="quantifying movement existance" doc:id="794a96b9-9b33-4264-b9a1-57232d98fa64">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+
+var baseline = Mule::p('movementBaseline') as Number
+
+fun movementDetection(old,new) = do {
+	
+    var oldMovement = old splitBy ","
+    var newMovement = new splitBy ","
+    
+    var old_x_axis = oldMovement[0] default "0.00"
+    var old_y_axis = oldMovement[1] default "0.00"
+    var old_z_axis = oldMovement[2] default "0.00"
+    
+    var new_x_axis = newMovement[0] default "0.00"
+    var new_y_axis = newMovement[1] default "0.00"
+    var new_z_axis = newMovement[2] default "0.00"
+    
+    var axisDifferences = [ (true) if(abs(new_x_axis - old_x_axis) > baseline),
+                            (true) if(abs(new_y_axis - old_y_axis) > baseline), 
+                            (true) if(abs(new_z_axis - old_z_axis) > baseline)  ]
+    ---
+   
+   	{
+       "movementEligibility": if(sizeOf(axisDifferences) >= 2) true else false
+   	}
+
+}
+---
+(payload map ((item, index) -> 
+	if(index == 0) { "movementEligibility": false } 
+	else movementDetection(payload[index-1].accelerometer,item.accelerometer) 
+))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="movementPercentage" doc:id="238876b7-318b-494a-aceb-445b167d4b6b">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="movementPercentage"><![CDATA[%dw 2.0
+output application/java
+---
+(((sizeOf(payload filter $.movementEligibility) / vars.totalEvents) * 100) as String {format: "#"}) as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Severity Classification" doc:id="9f34d75c-ac80-471c-8501-454863c78ca8">
+			<when expression="#[(vars.maxStepsTaken == 0) and (vars.movementPercentage &lt;= 25)]">
+				<logger level="INFO" doc:name="Log User Data" doc:id="f0658fce-9693-4169-a06a-aa30c536fe91" message="#[vars.userId] has experienced a HIGH severity fall with movement percentage as #[vars.movementPercentage] and steps taken as #[vars.maxStepsTaken] , please reach out to him for immediate assistance or whereabouts"/>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="dff639ea-346a-48d1-99bd-24dda89a1844" collection="#[(Mule::p('twilio.recipients') splitBy &quot;,&quot;) default []]">
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="34cf72cc-829b-455e-a29c-19e2ccfcce2f" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-messagesjson-by-account-sid doc:name="Create HIGH Severity Message" doc:id="0dab1c74-3197-4e44-a84a-617f533d803c" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}" target="twilioResponse">
+			<twilio:accounts-messages-content><![CDATA[#[output application/x-www-form-urlencoded
+var body = ((Mule::p('HIGH')) default "") replace "{{userId}}" with vars.userId replace "{{movementPercentage}}" with vars.movementPercentage replace "{{maxStepsTaken}}" with vars.maxStepsTaken replace "{{userLocation}}" with vars.userLocation
+---
+{
+	Body: body,
+	From: Mule::p('twilio.sender'),
+	To: payload
+}]]]></twilio:accounts-messages-content>
+		</twilio:create20100401-accounts-messagesjson-by-account-sid>
+					</until-successful>
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="f08a8845-0e69-4a47-82f7-14d391d42ca0" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-callsjson-by-account-sid doc:name="Create HIGH Severity Call" doc:id="02677d23-fbb4-4c47-adad-d808147ed9c8" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}">
+			<twilio:accounts-calls-content><![CDATA[#[output application/x-www-form-urlencoded
+var twiml = Mule::p('twiml.url') 
+---
+{
+	
+	From: Mule::p('twilio.sender'),
+	To: payload,
+	Url: twiml ++ (vars.userId default "") ++
+	     "?severityLevel=HIGH" ++ 
+	     "&client_id=" ++ Mule::p('twiml.client-id') ++
+	     "&client_secret=" ++ Mule::p('secure::twiml.client-secret')
+											  
+}]]]></twilio:accounts-calls-content>
+		</twilio:create20100401-accounts-callsjson-by-account-sid>
+					</until-successful>
+				</parallel-foreach>
+			</when>
+			<when expression="#[(vars.maxStepsTaken &gt; 0 and vars.maxStepsTaken &lt; 10) and (vars.movementPercentage &gt; 25 and vars.movementPercentage &lt;= 75)]">
+				<logger level="INFO" doc:name="Log User Data" doc:id="d9661c21-d6f3-4e2c-975c-e622047f8853" message="#[vars.userId] has experienced a HIGH severity fall with movement percentage as #[vars.movementPercentage] and steps taken as #[vars.maxStepsTaken] , please reach out to him for immediate assistance or whereabouts"/>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="beb49dc2-e7e8-4b4b-8d45-64923b7245fb" collection="#[(Mule::p('twilio.recipients') splitBy &quot;,&quot;) default []]">
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="71f39ffa-3d49-429c-b324-29ecf29b370b" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-messagesjson-by-account-sid doc:name="Create MED Severity Message" doc:id="22751bbd-4917-4928-952e-c31eb3663bfd" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}" target="twilioResponse">
+						<twilio:accounts-messages-content><![CDATA[#[output application/x-www-form-urlencoded
+var body = ((Mule::p('MED')) default "") replace "{{userId}}" with vars.userId replace "{{movementPercentage}}" with vars.movementPercentage replace "{{maxStepsTaken}}" with vars.maxStepsTaken replace "{{userLocation}}" with vars.userLocation
+---
+{
+	Body: body,
+	From: Mule::p('twilio.sender'),
+	To: payload
+}]]]></twilio:accounts-messages-content>
+					</twilio:create20100401-accounts-messagesjson-by-account-sid>
+					</until-successful>
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="f9cdf358-6d47-4bab-9850-7952ae472289" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-callsjson-by-account-sid doc:name="Create MED Severity Call" doc:id="c7149b1e-1eff-4d1a-a11e-428a561c7715" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}">
+						<twilio:accounts-calls-content><![CDATA[#[output application/x-www-form-urlencoded
+var twiml = Mule::p('twiml.url') 
+---
+{
+	
+	From: Mule::p('twilio.sender'),
+	To: payload,
+	Url: twiml ++ (vars.userId default "") ++
+	     "?severityLevel=MED" ++ 
+	     "&client_id=" ++ Mule::p('twiml.client-id') ++
+	     "&client_secret=" ++ Mule::p('secure::twiml.client-secret')
+											  
+}]]]></twilio:accounts-calls-content>
+					</twilio:create20100401-accounts-callsjson-by-account-sid>
+					</until-successful>
+				</parallel-foreach>
+			</when>
+			<when expression="#[(vars.maxStepsTaken == 0) and (vars.movementPercentage &gt; 75)]">
+				<logger level="INFO" doc:name="Log User Data" doc:id="9c5fc38e-1c8c-423c-9cf8-1b6538cf6bd1" message="#[vars.userId] has experienced a HIGH severity fall with movement percentage as #[vars.movementPercentage] and steps taken as #[vars.maxStepsTaken] , please reach out to him for immediate assistance or whereabouts"/>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="08aca8af-40cc-4ea0-b61a-4a05caa849c0" collection="#[(Mule::p('twilio.recipients') splitBy &quot;,&quot;) default []]">
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="71ba22c1-0af5-4e2a-ae06-63b25778f45c" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-messagesjson-by-account-sid doc:name="Create LOW Severity Message" doc:id="257944e4-c1e0-4b47-9e47-ab462dd33a56" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}" target="twilioResponse">
+						<twilio:accounts-messages-content><![CDATA[#[output application/x-www-form-urlencoded
+var body = ((Mule::p('LOW')) default "") replace "{{userId}}" with vars.userId replace "{{movementPercentage}}" with vars.movementPercentage replace "{{maxStepsTaken}}" with vars.maxStepsTaken replace "{{userLocation}}" with vars.userLocation
+---
+{
+	Body: body,
+	From: Mule::p('twilio.sender'),
+	To: payload
+}]]]></twilio:accounts-messages-content>
+					</twilio:create20100401-accounts-messagesjson-by-account-sid>
+					</until-successful>
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="b54d8876-20be-4899-bddc-920344a3a692" millisBetweenRetries="${retry.millis}">
+					<twilio:create20100401-accounts-callsjson-by-account-sid doc:name="Create LOW Severity Call" doc:id="cafa7ea0-c952-4bdb-9c65-72edb37eeb3f" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}">
+						<twilio:accounts-calls-content><![CDATA[#[output application/x-www-form-urlencoded
+var twiml = Mule::p('twiml.url') 
+---
+{
+	
+	From: Mule::p('twilio.sender'),
+	To: payload,
+	Url: twiml ++ (vars.userId default "") ++
+	     "?severityLevel=LOW" ++ 
+	     "&client_id=" ++ Mule::p('twiml.client-id') ++
+	     "&client_secret=" ++ Mule::p('secure::twiml.client-secret')
+											  
+}]]]></twilio:accounts-calls-content>
+					</twilio:create20100401-accounts-callsjson-by-account-sid>
+				</until-successful>
+				</parallel-foreach>
+			</when>
+			<when expression="#[(vars.maxStepsTaken &gt; 0) and (vars.movementPercentage &gt; 75)]">
+				<logger level="INFO" doc:name="Log User Data" doc:id="3ed4000a-13f9-4d8e-9722-29d4133cf670" message="#[vars.userId] has experienced a HIGH severity fall with movement percentage as #[vars.movementPercentage] and steps taken as #[vars.maxStepsTaken] , please reach out to him for immediate assistance or whereabouts"/>
+				<parallel-foreach doc:name="Parallel For Each" doc:id="ce4041df-8542-4133-a0d0-c7fa94229813" collection="#[(Mule::p('twilio.recipients') splitBy &quot;,&quot;) default []]">
+					<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="387a0b64-c34c-482f-ac98-893750e70805" millisBetweenRetries="${retry.millis}">
+						<twilio:create20100401-accounts-messagesjson-by-account-sid doc:name="Create INFO Level Message" doc:id="dc945c45-1784-4045-a619-93d556dd6548" config-ref="Twilio_Connector_Config" accountSid="${twilio.sid}" target="twilioResponse">
+						<twilio:accounts-messages-content><![CDATA[#[output application/x-www-form-urlencoded
+var body = ((Mule::p('INFO')) default "") replace "{{userId}}" with vars.userId replace "{{movementPercentage}}" with vars.movementPercentage replace "{{maxStepsTaken}}" with vars.maxStepsTaken replace "{{userLocation}}" with vars.userLocation
+---
+{
+	Body: body,
+	From: Mule::p('twilio.sender'),
+	To: payload
+}]]]></twilio:accounts-messages-content>
+					</twilio:create20100401-accounts-messagesjson-by-account-sid>
+					</until-successful>
+				</parallel-foreach>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="cc6c3f0f-9c96-4b94-8596-423380899013" message="#[vars.userId] has experienced a fall with movement percentage as #[vars.movementPercentage] and steps taken as #[vars.maxStepsTaken] , no calls or message has been dispatched"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

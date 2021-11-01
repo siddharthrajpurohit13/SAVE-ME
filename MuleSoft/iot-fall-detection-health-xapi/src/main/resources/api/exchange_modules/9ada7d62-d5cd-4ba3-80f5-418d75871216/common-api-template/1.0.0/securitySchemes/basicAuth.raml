@@ -1,0 +1,11 @@
+#%RAML 1.0 SecurityScheme
+type: Basic Authentication
+description: This uses basic authentication user id and password for validation
+describedBy: 
+  headers: 
+    Authorization:
+      description: Basic Authentication information
+      type: string
+  responses:
+    401:
+      description: User name or Password not valid

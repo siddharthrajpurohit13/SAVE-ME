@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/current/mule-twilio.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <http:listener-config name="iot-fall-detection-health-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="iot-fall-detection-health-api-config" api="iot-fall-detection-health-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <anypoint-mq:config name="Anypoint_MQ_Config" doc:name="Anypoint MQ Config" doc:id="00e17fef-1c4d-484b-90c1-d7da7102c94d">
+        <anypoint-mq:connection clientId="${mq.client-app-id}" clientSecret="${secure::mq.client-secret}" url="${mq.url}" />
+    </anypoint-mq:config>
+    <os:object-store name="Object_store" doc:name="Object store" doc:id="df4b9295-eb6b-48f9-aca4-6dea66757ab6" maxEntries="${os.max-entries}" entryTtl="${os.ttl}" entryTtlUnit="MINUTES" expirationInterval="${os.expiration-interval}" />
+    <configuration-properties doc:name="Configuration properties" doc:id="7edb6a38-b9ca-44de-81a3-81f306fa53a7" file="props/config-${mule.env}.yaml" />
+    <secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="6214ed14-0e9e-4300-8535-fdae41716a95" file="props/secured-config-${mule.env}.yaml" key="${mule.key}">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
+    <twilio:config name="Twilio_Connector_Config" doc:name="Twilio Connector Config" doc:id="8cc12697-51eb-49d1-82ce-87aa815dec25">
+        <twilio:account-sid-auth-token-connection username="${twilio.sid}" password="${secure::twilio.token}" />
+    </twilio:config>
+    <api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ea24d1ff-2bc4-46b3-8827-c64f7806cd63" flowRef="iot-fall-detection-health-api-main" />
+    <configuration doc:name="Configuration" doc:id="26f06457-22ef-410c-b2e7-a63bca60daa1" defaultErrorHandler-ref="globalError_Handler" />
+    <error-handler name="globalError_Handler" doc:id="dd5db36b-643c-426a-ad3c-9bfb6df72056">
+        <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5d6d2c6f-ed97-4a54-9a11-e75b6dc2bad0" type="ANY">
+            <until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="4fe5d66a-23bd-46be-8fcb-223ef59dc028" millisBetweenRetries="${retry.millis}">
+                <anypoint-mq:nack doc:name="Nack" doc:id="22931184-6122-4216-b116-def5cf922ab8" config-ref="Anypoint_MQ_Config" ackToken="#[vars.ackToken]" />
+            </until-successful>
+        </on-error-propagate>
+    </error-handler>
+</mule>

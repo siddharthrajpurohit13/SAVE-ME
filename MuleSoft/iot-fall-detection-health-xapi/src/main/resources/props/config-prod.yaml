@@ -1,0 +1,49 @@
+#HTTP
+http:
+  port: "8081"
+  
+#Severity-Messages
+INFO: "{{userId}} has experienced a fall with movement percentage as {{movementPercentage}} and steps taken as {{maxStepsTaken}}, here's the user's last known location {{userLocation}}"
+LOW: "{{userId}} has experienced a LOW severity fall with movement percentage as {{movementPercentage}} and steps taken as {{maxStepsTaken}}, please reach out to him for assistance or whereabouts at location {{userLocation}}"
+MED: "{{userId}} has experienced a MED severity fall with movement percentage as {{movementPercentage}} and steps taken as {{maxStepsTaken}}, please reach out to him for immediate assistance or whereabouts at location {{userLocation}}"
+HIGH: "{{userId}} has experienced a HIGH severity fall with movement percentage as {{movementPercentage}} and steps taken as {{maxStepsTaken}}, please reach out to him for immediate assistance or whereabouts at location {{userLocation}}"
+
+#AnypointMQ
+mq:
+  queue-name: "iot-sensor-queue"
+  client-app-id: "f3c4bc34740c499abc3ffcbfea83dcd1"
+  url: "https://mq-us-east-1.anypoint.mulesoft.com/api/v1"
+
+#Until-Successful 
+retry:
+  attempts: "2"
+  millis: "10000"
+  
+#Aggregator
+aggregator:
+  timeout: "3"
+  size: "180"
+
+#Movement-Criteria
+movementBaseline: "0.30"
+
+#Twilio
+twilio:
+  sid: "AC8b809f5ef2d4984c682d3d3c2f9e5dd1"
+  sender: "+13649002604"
+  recipients: "+917568898802"
+  
+#VoiceCall API
+twiml:
+  url: "http://iot-twilio-voice-call-sapi-prod.us-e1.cloudhub.io/api/outbound/"
+  client-id: "b6a717e4a3c64da1927e8e8d72618c63"
+
+#ObjectStore
+os:
+  max-entries: "180"
+  ttl: "3"
+  expiration-interval: "1"
+  
+#AutoDiscovery
+api:
+  id: "17384066"
