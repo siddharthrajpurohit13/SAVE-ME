@@ -31,7 +31,7 @@ movementBaseline: "0.30"
 twilio:
   sid: "AC8b809f5ef2d4984c682d3d3c2f9e5dd1"
   sender: "+13649002604"
-  recipients: "+917568898802"
+  recipients: "+9175XXX9XX02"
   
 #VoiceCall API
 twiml:
