@@ -1,0 +1,31 @@
+#%RAML 1.0
+title: Twilio Voice Call API
+protocols:
+  - HTTP
+mediaType: 
+- application/json
+description: Sending TwiML Based Response for twilio calls
+
+uses:
+  commonTemplate : exchange_modules/9ada7d62-d5cd-4ba3-80f5-418d75871216/common-api-template/1.0.0/common-api-template.raml
+
+types:
+  Response: !include data-types/outboundResponse.raml
+  errorResponse: !include data-types/errorResponse.raml
+
+/outbound/{userId}:
+  post:
+    description: sending system generated twilio markup language (TwiML) response back to client
+    queryParameters:
+      severityLevel:
+        required: true
+        enum:
+          - LOW
+          - MED
+          - HIGH
+    responses:
+      200:
+        body:
+          application/xml:
+            type: Response   
+    is: [{commonTemplate.400: {responseType: errorResponse}},{commonTemplate.404: {responseType: errorResponse}},{commonTemplate.405: {responseType: errorResponse}},{commonTemplate.500: {responseType: errorResponse}}]

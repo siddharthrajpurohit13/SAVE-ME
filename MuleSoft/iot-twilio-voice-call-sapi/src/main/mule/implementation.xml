@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="iot-twilio-voice-call-main-flow" doc:id="962c72cc-ca8d-434d-8485-eff8573024ce" >
+		<logger level="INFO" doc:name="Flow Started" doc:id="0c5e609c-df79-4eda-ac45-c6fd68cb13da" message="#[flow.name] Started"/>
+		<set-variable value="#[upper(attributes.uriParams.userId)]" doc:name="userId" doc:id="8c225a07-db7f-4889-ae2d-6f230489e7d3" variableName="userId" />
+		<set-variable value="#[upper(attributes.queryParams.severityLevel)]" doc:name="severityLevel" doc:id="b61cb3f7-4459-4f3e-bff5-f4333a811f11" variableName="severityLevel" />
+		<logger level="INFO" doc:name="Incident Details" doc:id="f828baff-e52a-471e-967f-1b2c78c8c129" message="Request received for user #[vars.userId] with #[vars.severityLevel] severity" />
+		<ee:transform doc:name="TwiML Response" doc:id="0550e1fb-f3d9-468b-b3ae-de072bd4f640">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+var sevLevel = vars.severityLevel
+---
+"Response": {
+	"Say": (vars.userId default "") ++ " " ++ (Mule::p(sevLevel default ""))
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Flow Ended" doc:id="2785101a-6420-4e3e-ba15-14a79eeaf227" message="#[flow.name] Ended"/>
+	</sub-flow>
+</mule>

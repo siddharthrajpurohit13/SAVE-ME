@@ -1,0 +1,15 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  code:
+    type: string
+    required: true
+    description: http status codes for each response
+  Status:
+    enum: [INFO, WARN, ERROR, FATAL, SUCCESS] 
+    required: true
+    description: http status for each response
+  Description:
+    type: string | nil
+    required: false
+    description: Description of error type or success results.

@@ -1,0 +1,73 @@
+#%RAML 1.0 ResourceType
+  post:
+    body:
+      application/json:
+        example: <<postRequestExample>>
+        type: <<postRequestType>>
+    responses: 
+      201:
+        headers: 
+          Location:
+            type: string
+            example: <<locationHeaderExample>>
+        body:
+          application/json:
+            example: <<postResponseExample>>
+            type: <<postResponseType>>
+      500:
+        description: |
+            An Internal Server Error has occurred. 
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      502:
+        description: |
+            Bad Gateway. 
+            Problem communicating with or an error has been returned from a downstream endpoint.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      504:
+        description: |
+            Gateway Timeout.
+            Timeout communicating with a downstream endpoint 
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      404:
+        description: |
+            The URI requested is invalid or the resource requested does not exist.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      403:
+        description: |
+            The request is understood, but it has been refused or access is not allowed.  
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>    
+            example: <<errorResponseExample>>   
+      401:
+        description: |
+            Requestor is not authorised to perform this action.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>
+      400:
+        description: |
+            Request is invalid.
+            Refer to the accompanying error message for further details.
+        body:
+          application/json:
+            type: <<errorResponseType>>
+            example: <<errorResponseExample>>

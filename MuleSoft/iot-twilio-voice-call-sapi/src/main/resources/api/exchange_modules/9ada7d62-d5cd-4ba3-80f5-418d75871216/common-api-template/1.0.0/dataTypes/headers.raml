@@ -1,0 +1,11 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  Transaction-ID:
+    type: string | nil
+    required: false
+    description: unique ID from the parent API or client application
+  Application-Name:
+    type: string | nil
+    required: false
+    description: client or calling API application name.

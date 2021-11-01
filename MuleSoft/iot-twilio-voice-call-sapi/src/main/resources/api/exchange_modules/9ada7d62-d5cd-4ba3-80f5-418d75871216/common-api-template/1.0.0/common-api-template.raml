@@ -1,0 +1,136 @@
+#%RAML 1.0 Library
+usage: corning common library
+securitySchemes:
+  basicAuth: !include securitySchemes/basicAuth.raml
+  oauth_2_0: !include securitySchemes/oauth_2_0.raml
+
+types:
+  responseType: !include dataTypes/httpStatusCodes.raml
+  headers: !include dataTypes/headers.raml
+
+traits:
+  clientCredentials: !include traits/client-credentials.raml
+  cachaeble: !include traits/cachable.raml
+  contentCacheable: !include traits/content-cacheable.raml
+  timeCacheable: !include traits/time-cacheable.raml
+  pageable: !include traits/pageable.raml
+  sortable: !include traits/sortable.raml
+  countable: !include traits/countable.raml
+  partial: !include traits/partial.raml
+  protected: !include traits/protected.raml
+  trackable: !include traits/trackable.raml
+  200:
+    responses:
+      200:
+        description: <<resourcePathName | !singularize | !uppercamelcase >> was successfully processed
+        body:
+          type: <<responseType>>
+  201:
+    responses:
+      201:
+        description: <<resourcePathName | !singularize | !uppercamelcase >> was successfully created
+        body:
+          type: <<responseType>>
+  202:
+    responses:
+      202:
+          description: <<resourcePathName | !singularize | !uppercamelcase >> was successfully accepted
+          body:
+              type: <<responseType>>
+  204:
+    responses:
+      204:
+        description: No Content
+        body:
+          type: <<responseType>>
+  303:
+    responses:
+      303:
+        description: See Other
+        body:
+          type: <<responseType>>
+  304:
+    responses:
+      304:
+        description: Not Modified
+        body:
+          type: <<responseType>>
+  400:
+    responses:
+      400:
+        description: Bad Request
+        body:
+          type: <<responseType>>
+  401:
+    responses:
+      401:
+        description: Unauthorized
+        body:
+          type: <<responseType>>
+  403:
+    responses:
+      403:
+        description: Forbidden
+        body:
+          type: <<responseType>>
+  404:
+    responses:
+      404:
+        description: Not Found
+        body:
+          type: <<responseType>>
+  405:
+    responses:
+      405:
+        description: Method Not Allowed
+        body:
+          type: <<responseType>>
+  408:
+    responses:
+      408:
+        description: Request Timeout
+        body:
+          type: <<responseType>>
+  409:
+    responses:
+      409:
+        description: Conflict
+        body:
+          type: <<responseType>>
+  412:
+    responses:
+      412:
+        description: Precondition Failed
+        body:
+          type: <<responseType>>
+  415:
+    responses:
+      415:
+        description: Unsupported Media Type
+        body:
+          type: <<responseType>>
+  429:
+    responses:
+      429:
+        description: Too Many Requests
+        body:
+          type: <<responseType>>
+  500:
+    responses:
+      500:
+        description: Internal Server Error
+        body:
+          type: <<responseType>>
+  501:
+    responses:
+      501:
+        description: Not Implemented
+        body:
+          type: <<responseType>>
+resourceTypes:
+  create-only: !include resourceTypes/create-only.raml
+  read-create: !include resourceTypes/read-create.raml
+  read-only: !include resourceTypes/read-only.raml
+  read-update-delete: !include resourceTypes/read-update-delete.raml
+  replace-only: !include resourceTypes/replace-only.raml
+  update-only: !include resourceTypes/update-only.raml

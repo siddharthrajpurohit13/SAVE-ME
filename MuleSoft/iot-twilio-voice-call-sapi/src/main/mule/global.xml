@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="1878fcfe-a773-483c-9b4e-983383181c08" file="props/config-${mule.env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="3cbe3403-97ac-4a10-9a90-acfa2ee750af" name="mule.env" value="dev" />
+	<configuration doc:name="Configuration" doc:id="6c578a36-718b-40c9-9d00-61b52e7ec18f" defaultErrorHandler-ref="globalError_Handler" />
+	<!--  <api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="b51d505f-2e8e-4721-b196-e8cce6b0a301" flowRef="twilio-voice-call-api-main" /> -->
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="90a26015-be05-4bc5-b4c2-07cf7455bf07" flowRef="twilio-voice-call-api-main" />
+	<error-handler name="globalError_Handler" doc:id="6d5fce11-0a58-4e1c-9fef-77b3ca7b3b76" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="11ff3add-7613-4e1a-8294-8574d9a72cd4" type="ANY">
+			<logger level="INFO" doc:name="Error Description" doc:id="4bbfc549-8e52-4874-b886-211277a6b3e4" message="#[error.detailedDescription]"/>
+			<ee:transform doc:name="Transform Message" doc:id="d3bc8903-1438-47a0-894c-68381068fd77" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

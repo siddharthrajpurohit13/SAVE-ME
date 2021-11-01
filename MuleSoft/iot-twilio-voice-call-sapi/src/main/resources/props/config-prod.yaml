@@ -1,0 +1,13 @@
+#severity-messages
+
+LOW: "experienced a fall with LOW severity, please reach out to him for assistance or whereabouts at the location sent to your mobile via sms"
+MED: "experienced a fall with MEDIUM severity, please reach out to him for immediate assistance or whereabouts at the location sent to your mobile via sms"
+HIGH: "experienced a fall with HIGH severity, please reach out to him for immediate assistance or whereabouts at the location sent to your mobile via sms"
+
+#HTTP
+http:
+  port: "8081"
+  
+#Auto-Discovery
+api:
+  id: "17385599"
