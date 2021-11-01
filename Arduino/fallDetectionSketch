@@ -29,10 +29,13 @@ String zaxis = "0"; //default value
 String fallDetection = ""; //default value
 String accelerometer = "0,0,0"; //default value
 String pedometer = "0"; //default value
+//float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object  
 float lat = 28.5458,lon = 77.1703; // create variable for latitude and longitude object  
 SoftwareSerial gpsSerial(3,4);//rx,tx 
 LiquidCrystal lcd(A0,A1,A2,A3,A4,A5); 
-TinyGPS gps; // create gps object 
+TinyGPS gps; // create gps object
+String latitude = ""; 
+String longitude = "";
 
 WiFiClient client;
 
@@ -116,7 +119,7 @@ void loop() {
    accelerometerDetection();
    pedometerDetected();
    GPS();
-   postData = ("{\"fallDetection\": " + fallDetection + ",\"pedometer\": " + pedometer + ",\"accelerometer\":" +  accelerometer + ",\"latitude\":" + latitude + ",\"longitude\":" + longitude "}");
+   postData = ("{\"fallDetection\": " + fallDetection + ",\"pedometer\": " + pedometer + ",\"accelerometer\":" +  accelerometer + ",\"location\":" + "https://www.google.com/maps/search/?api=1&query="  + latitude + "," + longitude + "}");
    httpPostData();
 }
 
@@ -213,6 +216,26 @@ void GPS() {
   if(gps.encode(gpsSerial.read()))// encode gps data 
   {  
   gps.f_get_position(&lat,&lon); // get latitude and longitude 
+  // display position 
+  lcd.clear(); 
+  lcd.setCursor(1,0); 
+  lcd.print("GPS Signal"); 
+  //Serial.print("Position: "); 
+  //Serial.print("Latitude:"); 
+  //Serial.print(lat,6); 
+  //Serial.print(";"); 
+  //Serial.print("Longitude:"); 
+  //Serial.println(lon,6);  
+  lcd.setCursor(1,0); 
+  lcd.print("LAT:"); 
+  lcd.setCursor(5,0); 
+  lcd.print(lat); 
+  //Serial.print(lat); 
+  //Serial.print(" "); 
+  lcd.setCursor(0,1); 
+  lcd.print(",LON:"); 
+  lcd.setCursor(5,1); 
+  lcd.print(lon); 
   } 
   } 
   String latitude = String(lat,6); 
